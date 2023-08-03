@@ -4,8 +4,10 @@ The code was assembled with BRONZEBEARD assembler in windows OS.
 
 tutorial1-env\Scripts\activate.bat
 
-if CH32_USART_asm.asm and CH32V003_reg1.asm (inc files) are on desktop ( both files should be in the same folder) use command
+if CH32V003_I2Cver2.asm and CH32V003_reg1.asm (inc files) are on desktop ( both files should be in the same folder) use command
+
 bronzebeard --hex-offset 0x08000000 Desktop/CH32V003_I2Cver2.asm
+
 Use WCH_LINK_UTILITY to upload the assembled bb.out.hex file to CH32V003 chip by connceting gnd, 3.3v,DIO pins.
 
 connect PC1 to SDA of the fujitsu FRAM MB85RC256V,if need add 4.7k pullup resistor
