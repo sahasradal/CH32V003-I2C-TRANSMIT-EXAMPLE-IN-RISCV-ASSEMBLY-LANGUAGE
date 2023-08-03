@@ -107,22 +107,25 @@ I2C_BUSY:
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
+IB:
 	li x10, R16_I2C_STAR2		# set pointer x10 to I2C status register 2, busy bit resides there
 	lh x11,0(x10)			# copy to x11 I2C_STAR2 register contents
 	andi x11,x11,(1<<1) 		# and x11 with 1<<I2CBUSY
-	bnez x11,I2C_BUSY 		# if not 0 loop till I2CBUSY bit becomes 0
+	bnez x11,IB	 		# if not 0 loop till I2CBUSY bit becomes 0
+
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,12
 	ret 
-
+#################################################
 I2C_START:				# send start condition on I2C bus
 	addi sp,sp,-16
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
 	sw x7,12(sp)
+
 	li x10,R16_I2C_CTLR1		# start bit is in i2c cotrol register bit 8
 	lh x11,0(x10)			# copy contents of control register
 	ori x11,x11,((1<<10) | (1<<8)) 	# set start bit8 and ack enable bit10
@@ -137,82 +140,92 @@ check_master_mode_bit:			# below code checks start bit is set , master mode bit 
 	li x7,0x00030001		# BUSY, MSL and SB status bits
 	and x11,x11,x7			# ANDing yeilds the above 3 status bits
 	bne x11,x7,check_master_mode_bit 	# if all 3 bits not sets wait in a loop
+
 	lw x7,12(sp)
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,16
 	ret
-
+#####################################################################
 I2C_WRITE:
 	addi sp,sp,-12
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
+IW:
 	li x10,R16_I2C_STAR1			# i2c_status1 register
 	lh x11,0(x10)				# read and copy contents
 	andi x11,x11,(1<<7)			# and contents of x11 with TxE bit7 , if set transmission buffer empty
-	beqz x11, I2C_WRITE			# wait till TBE is set (loop if a3 is 0)
+	beqz x11, IW				# wait till TBE is set (loop if a3 is 0)
 	li x10,R16_I2C_DATAR			# set pointer to I2C data register
 	sb x15,0(x10)				# store data loaded in x15 to I2C data register
+
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,12
 	ret					# return to caller
-
+############################################################################
 CLEAR_ACK:					# subroutine to clear ACKEN bit in I2C_CTLR1 register
 	addi sp,sp,-12
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
+
 	li x10,R16_I2C_CTLR1
 	lh x11,0(x10)				# copy to x11 contents of I2C_CTL0 rgister
 	andi x11,x11,~(1<<10)			# and with 0 shifted to ACK bit10
 	sh x11,0(x10)				# write back to register
+
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,12
 	ret					# return to caller
-
+###################################################################################
 I2C_TX_COMPLETE:				# subroutine checks weather I2C transmission is complete
 	addi sp,sp,-12
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
+IC:
 	li x10,R16_I2C_STAR1
 	lh x11,0(x10)
 	andi x11,x11,(1<<7)			# check TBE(7) is set 
-	beqz x11, I2C_TX_COMPLETE		# if not wait by looping to label I2C_TX_COMPLETE 
+	beqz x11, IC				# if not wait by looping to label I2C_TX_COMPLETE 
+
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,12
 	ret					# return to caller
-
+###################################################################################
 I2C_STOP:					# subroutine to stop I2C transmission
 	addi sp,sp,-12
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
+
 	li x10,R16_I2C_CTLR1
 	lh x11,0(x10)
 	ori x11,x11,(1<<9)			# set STOP bit9 in I2C_CTRL1 register
 	sh x11,0(x10)
+
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,12
 	ret					# return to caller
-
+###################################################################################
 SEND_ADDRESS:					# sends address , address to be loaded in x15
 	addi sp,sp,-20
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
 	sw x12,12(sp)
-	sw x7,16(sp)
+	sw x7,16(sp
+
 	li x10,R16_I2C_DATAR			# set pointer to data register
 	sb x15,0(x10)				# store byte in x15 to I2C data register
 address_transmit:
@@ -225,6 +238,7 @@ address_transmit:
 	li x7,0x00070082			# BUSY, MSL, ADDR, TXE and TRA status
 	and x11,x11,x7				# and with above bit mask to see whether these bits are set in status register
 	bne x11,x7,address_transmit		# sit in tight loop until above bits are set in both status register
+
 	lw x7,16(sp)
 	lw x12,12(sp)
 	lw x11,8(sp)
@@ -232,13 +246,14 @@ address_transmit:
 	lw ra,0(sp)
 	addi sp,sp,20
 	ret
-
+###################################################################
 check_i2c_status:
 	addi sp,sp,-16
 	sw ra,0(sp)
 	sw x10,4(sp)
 	sw x11,8(sp)
 	sw x12,12(sp)
+
 	li x10, R16_I2C_STAR1			# set pointer x10 to R16_I2C_STAR1 , status register 1
 	lh x11,0(x10)				# copy contents to x11
 	li x10,	 R16_I2C_STAR2			# set pointer to R16_I2C_STAR2
@@ -247,13 +262,14 @@ check_i2c_status:
 	or x11,x11,x12				# status register 1 = 0-15 bits and status register2 = 16-32 bit
 	li x10,buffer				# point x10 to SRAM buffer , address 0x20000004
 	sw x11,0(x10)				# store status data in sram for future use
+
 	lw x12,12(sp)
 	lw x11,8(sp)
 	lw x10,4(sp)
 	lw ra,0(sp)
 	addi sp,sp,16
 	ret
-
+##########################
 
 #==========================================
 delay:								# delay routine
