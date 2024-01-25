@@ -1,0 +1,16 @@
+Details of Bronzebeard RISCV assembler available in below websites
+
+https://bronzebeard.readthedocs.io/en/latest/index.html
+https://github.com/theandrew168/bronzebeard#setup
+
+
+instruction for windows
+1)In windows command prompt create virtual environment by typing - python3 -m venv tutorial-env
+2)Activated the virtual environment with command - tutorial-env\Scripts\activate.bat
+3)Downloaded latest bronzebeard 0.01.17 by typing - pip install bronzebeard
+4)Placed xyz.asm & CH32V003_reg1.asm(include) files on desktop
+5)Typed bronzebeard command -   bronzebeard --hex-offset 0x08000000 Desktop/xyz.asm
+6)Assembled file found the bb. OUT file and bb.out. HEX file in the command prompt folder
+
+
+Download WCHUTILITY tool from WCH website for CH32V003 chips and use WCHELINK to upload
